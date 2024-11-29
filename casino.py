@@ -14,6 +14,7 @@ pygame.display.set_caption("게임")
 # 색상 정의
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
 
 # 글꼴 설정
 try:
@@ -29,7 +30,7 @@ black = (0, 0, 0)
 
 # 플레이어 이미지 로드 및 초기 설정
 player_image = pygame.image.load("player1.png")
-# 이미지 크기 조정 (예: 50%로 줄이기)
+# 이미지 크기 조정
 player_image = pygame.transform.scale(player_image, (player_image.get_width() // 10, player_image.get_height() // 10))
 player_rect = player_image.get_rect()
 player_rect.center = (screen_width // 2, screen_height // 2)
@@ -41,8 +42,8 @@ player_speed = 5
 class NPC:
     def __init__(self, image_path, x, y):
         self.image = pygame.image.load(image_path)
-        # 이미지 크기 조정 (예: 10%로 줄이기)
-        self.image = pygame.transform.scale(self.image, (self.image.get_width() // 1, self.image.get_height() // 1))
+        # 이미지 크기 조정
+        self.image = pygame.transform.scale(self.image, (self.image.get_width() // 2, self.image.get_height() // 2))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
@@ -51,7 +52,7 @@ class NPC:
 
 # NPC 인스턴스 생성
 roulette_npc = NPC("roulette.png", 200, 150)
-blackjack_npc = NPC("blackjack_dealer.png", 1500, 300)
+blackjack_npc = NPC("blackjack_dealer.png", 700, 300)
 
 # 블랙잭 실행 함수
 def play_blackjack():
@@ -264,11 +265,15 @@ def play_slot_machine():
         pygame.display.flip()
 
 def intro_story():
+    intro_background_image = pygame.image.load('intro_background.png')
+    intro_background_image = pygame.transform.scale(intro_background_image, (screen_width, screen_height))
+
     story_pages = [
-        "2024년 11월 30일....",
-        "어느 깊숙한 도박장으로 납치 당했다.",
-        "나에게 100만원을 주며 ",
-        "1억을 만들어 오면 나가게 해주겠다고 했다."
+        "어느 날, 평범했던 일상이 한 통의 전화로 뒤바뀌었다.",
+        '"당신의 가족이 우리 손에 있다. 몸값으로 1억원을 준비해라."',
+        "믿기 힘든 내용이 전화기 너머로 들려왔다.",
+        "나는 가족을 구하기 위해 무엇이든 해야 했다.",
+        "선택의 여지가 없었다. 돈을 마련할 수 있는 유일한 방법은 카지노였다."
     ]
 
     current_page = 0
@@ -292,10 +297,10 @@ def intro_story():
                         current_text = ""
                         char_index = 0
                     else:
-                        return start_pygame
+                        return main_menu
 
         # 배경 이미지
-        screen.fill((0,0,0))
+        screen.blit(intro_background_image, (0, 0))
 
         # 텍스트 애니메이션 
         now = pygame.time.get_ticks()
@@ -311,11 +316,46 @@ def intro_story():
 
         pygame.display.flip()
 
+def main_menu():
+    # 메뉴 배경 이미지 로드 및 크기 조정
+    menu_background_image = pygame.image.load('casino_main_background.png')
+    menu_background_image = pygame.transform.scale(menu_background_image, (screen_width, screen_height))
+    # 메인 메뉴 루프
+    running_menu = True
+    while running_menu:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if enter_button.collidepoint(mouse_pos):
+                    # 입장하기 버튼 클릭 시 실행할 코드
+                    print("게임에 입장합니다!")
+                    running_menu = False
+
+        # 메인 메뉴 화면 그리기
+        # 메뉴 배경 이미지 그리기
+        screen.blit(menu_background_image, (0, 0))
+        title_text = font.render("카지노", True, BLACK)
+        enter_text = font.render("입장하기", True, RED)
+
+        # 제목과 버튼을 화면 중앙에 배치
+        screen.blit(title_text, (screen_width // 2 - title_text.get_width() // 2, screen_height // 4))
+        
+        # "입장하기" 버튼 생성
+        enter_button = pygame.Rect(screen_width // 2 - 75, screen_height // 2 - 25, 150, 50)
+        pygame.draw.rect(screen, BLACK, enter_button)
+        screen.blit(enter_text, (enter_button.x + (enter_button.width - enter_text.get_width()) // 2, enter_button.y + (enter_button.height - enter_text.get_height()) // 2))
+
+        pygame.display.flip()
+
+
 def start_pygame():
     global screen
 
+    # 배경 이미지 로드 및 크기 조정
     background_image = pygame.image.load('casino_up.png')
-# 배경 이미지
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 
     # 카메라 오프셋 초기화
@@ -361,18 +401,19 @@ def start_pygame():
         camera_x = player_rect.x - screen_width // 2 + player_rect.width // 2
         camera_y = player_rect.y - screen_height // 2 + player_rect.height // 2
 
+
         # 화면 그리기
-        screen.fill(black)
-        
+        screen.blit(background_image, (0, 0))  # 배경 이미지 그리기
         # 플레이어 그리기 (카메라 오프셋 적용)
         screen.blit(player_image, (player_rect.x - camera_x, player_rect.y - camera_y))
         
         # NPC 그리기 (카메라 오프셋 적용)
         roulette_npc.draw(screen, camera_x, camera_y)
         blackjack_npc.draw(screen, camera_x, camera_y)
-        
+
         # 화면 업데이트 
         pygame.display.flip()
 
 intro_story()
+main_menu()
 start_pygame()
