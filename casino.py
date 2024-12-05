@@ -25,6 +25,8 @@ except:
 # 카드 이미지 경로
 CARD_FOLDER = "card"
 
+money= 1000
+
 # 색상 정의
 black = (0, 0, 0)
 
@@ -54,8 +56,22 @@ class NPC:
 roulette_npc = NPC("roulette.png", 200, 150)
 blackjack_npc = NPC("blackjack_dealer.png", 700, 300)
 
-# 블랙잭 실행 함수
 def play_blackjack():
+    global money  # 전역 변수로 돈 관리
+    bet_amount = 100  # 기본 배팅 금액
+    
+    def reset_game():
+        nonlocal deck, player_hand, dealer_hand, message, reveal_dealer_cards
+        # 덱 초기화 및 섞기
+        deck = [f"{value}{suit}" for suit in suits for value in values]
+        random.shuffle(deck)
+        # 손패 초기화
+        player_hand = [deck.pop(), deck.pop()]
+        dealer_hand = [deck.pop(), deck.pop()]
+        # 게임 상태 초기화
+        message = ""
+        reveal_dealer_cards = False
+
     # 카드 덱 생성 및 섞기
     suits = ['H', 'D', 'C', 'S']
     values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
@@ -63,11 +79,14 @@ def play_blackjack():
     random.shuffle(deck)
     background_image = pygame.image.load('inside.png')
     
-
-    # 플레이어와 딜러의 카드 초기화
-    player_hand = [deck.pop(), deck.pop()]
-    dealer_hand = [deck.pop(), deck.pop()]
-
+    # 게임 상태 초기화
+    player_hand = []
+    dealer_hand = []
+    message = ""
+    reveal_dealer_cards = False
+    
+    # 게임 초기화
+    reset_game()
     # 점수 계산 함수
     def calculate_score(hand):
         score = 0
@@ -90,85 +109,99 @@ def play_blackjack():
 
         return score
 
-    # 승패 판정 
+
     def determine_winner():
+        nonlocal message
+        global money
         player_score = calculate_score(player_hand)
         dealer_score = calculate_score(dealer_hand)
 
         if player_score > 21:
-            return "플레이어 Bust! 딜러 Wins!"
+            money -= bet_amount
+            return f"플레이어 Bust! 딜러 Wins! (-${bet_amount}) 남은 금액: ${money}"
         elif dealer_score > 21:
-            return "딜러 Bust! 플레이어 Wins!"
+            money += bet_amount
+            return f"딜러 Bust! 플레이어 Wins! (+${bet_amount}) 남은 금액: ${money}"
         elif player_score > dealer_score:
-            return "플레이어 Wins!"
+            money += bet_amount
+            return f"플레이어 Wins! (+${bet_amount}) 남은 금액: ${money}"
         elif player_score < dealer_score:
-            return "딜러 Wins!"
+            money -= bet_amount
+            return f"딜러 Wins! (-${bet_amount}) 남은 금액: ${money}"
         else:
-            return "무승부!"
+            return f"무승부! 남은 금액: ${money}"
 
-    # 블랙잭 화면 그리기 
     def draw_blackjack(message, reveal_dealer=False):
-        # 배경 이미지 
         screen.blit(background_image, (0, 0))
+        
+        # 배팅 금액과 현재 잔액 표시
+        bet_text = font.render(f"배팅 금액: ${bet_amount}", True, WHITE)
+        money_text = font.render(f"현재 잔액: ${money}", True, WHITE)
+        screen.blit(bet_text, (screen_width - 250, 30))
+        screen.blit(money_text, (screen_width - 250, 70))
 
-        # 플레이어와 딜러의 카드 표시
         player_text = font.render("플레이어의 손패:", True, WHITE)
         dealer_text = font.render("딜러의 손패:", True, WHITE)
-        screen.blit(player_text, (50, screen_height - 150))
+        screen.blit(player_text, (50, screen_height - 180))
         screen.blit(dealer_text, (50, 50))
 
-        # 카드 이미지 로드 및 표시 (플레이어)
         for i, card in enumerate(player_hand):
             card_image = pygame.image.load(f"{CARD_FOLDER}/{card}.png")
             card_image = pygame.transform.scale(card_image, (100, 150))
             screen.blit(card_image, (50 + i * 120, screen_height - 130))
 
-        # 카드 이미지 로드 및 표시 (딜러)
         for i, card in enumerate(dealer_hand):
-            if i == 0 and not reveal_dealer:  
-                card_image = pygame.image.load(f"{CARD_FOLDER}/card-back.png")  
+            if i == 0 and not reveal_dealer:
+                card_image = pygame.image.load(f"{CARD_FOLDER}/card-back.png")
             else:
                 card_image = pygame.image.load(f"{CARD_FOLDER}/{card}.png")
             card_image = pygame.transform.scale(card_image, (100, 150))
             screen.blit(card_image, (50 + i * 120, 100))
 
-        # 승패 메시지 출력 
         message_text = font.render(message, True, WHITE)
         screen.blit(message_text, (screen_width // 2 - message_text.get_width() // 2, screen_height // 2))
 
-    # 게임 루프 변수 초기화
-    message = ""
-    reveal_dealer_cards = False
-    running_blackjack = True
+        if reveal_dealer_cards:
+            continue_text = font.render("스페이스바를 눌러 다시 시작", True, WHITE)
+            screen.blit(continue_text, (screen_width // 2 - continue_text.get_width() // 2, screen_height // 2 + 40))
 
-    while running_blackjack:
+    running_blackjack = True
+    while running_blackjack and money >= bet_amount:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:  
+                if event.key == pygame.K_ESCAPE:
                     running_blackjack = False
-                
-                elif event.key == pygame.K_SPACE:  
-                    message = determine_winner()
-                    reveal_dealer_cards = True
-
-                elif event.key == pygame.K_h: 
-                    player_hand.append(deck.pop())
-                    if calculate_score(player_hand) > 21: 
+                elif event.key == pygame.K_SPACE:
+                    if reveal_dealer_cards:
+                        reset_game()
+                    else:
                         message = determine_winner()
                         reveal_dealer_cards = True
-
-                elif event.key == pygame.K_s:  
-                    while calculate_score(dealer_hand) < 17: 
+                elif event.key == pygame.K_h and not reveal_dealer_cards:
+                    player_hand.append(deck.pop())
+                    if calculate_score(player_hand) > 21:
+                        message = determine_winner()
+                        reveal_dealer_cards = True
+                elif event.key == pygame.K_s and not reveal_dealer_cards:
+                    while calculate_score(dealer_hand) < 17:
                         dealer_hand.append(deck.pop())
                     message = determine_winner()
                     reveal_dealer_cards = True
 
-        draw_blackjack(message, reveal_dealer=reveal_dealer_cards)  
+        draw_blackjack(message, reveal_dealer=reveal_dealer_cards)
         pygame.display.flip()
+
+    if money < bet_amount:
+        game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
+        screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        sad_ending()
+        return
 
 # 슬롯머신 실행 함수
 def play_slot_machine():
@@ -413,6 +446,55 @@ def start_pygame():
 
         # 화면 업데이트 
         pygame.display.flip()
+
+def sad_ending():
+    sad_background = pygame.image.load('sad_ending_background.png')  # 또는 새로운 엔딩용 배경
+    sad_background = pygame.transform.scale(sad_background, (screen_width, screen_height))
+    
+    ending_texts = [
+        "결국 돈을 모으는데 실패했다...",
+        "더 이상 희망이 없었다.",
+        "가족을 구하지 못한 나는...",
+        "계속 살아갈 수 있을까...."
+    ]
+    
+    running_ending = True
+    current_text = ""
+    current_page = 0
+    char_index = 0
+    text_speed = 50
+    last_update_time = pygame.time.get_ticks()
+    
+    while running_ending:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    if current_page < len(ending_texts) - 1:
+                        current_page += 1
+                        current_text = ""
+                        char_index = 0
+                    else:
+                        pygame.quit()
+                        sys.exit()
+        
+        screen.blit(sad_background, (0, 0))
+        
+        now = pygame.time.get_ticks()
+        if now - last_update_time > text_speed and char_index < len(ending_texts[current_page]):
+            current_text += ending_texts[current_page][char_index]
+            char_index += 1
+            last_update_time = now
+            
+        rendered_text = font.render(current_text, True, RED)
+        text_rect = rendered_text.get_rect(center=(screen_width // 2, screen_height // 2))
+        screen.blit(rendered_text, text_rect)
+        
+        pygame.display.flip()
+
+
 
 intro_story()
 main_menu()
