@@ -203,48 +203,41 @@ def play_blackjack():
         sad_ending()
         return
 
-# 슬롯머신 실행 함수
 def play_slot_machine():
+    global money  # 전역 변수로 돈 관리
+    bet_amount = 100  # 기본 배팅 금액
+
     image_filenames = ['lemon.png', 'seven.png', 'apple.png', 'cherry.png']
     jackpot_image = pygame.image.load('jackpot.png')
     background_image = pygame.image.load('inside.png')
-# 배경 이미지
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 
-    reel_positions = [screen_width // 4, screen_width // 2, screen_width // 4 * 3] 
+    reel_positions = [screen_width // 4, screen_width // 2, screen_width // 4 * 3]
     reel_y = screen_height // 2 - 100
-    images = [pygame.image.load(img) for img in image_filenames]
+    images = [pygame.transform.scale(pygame.image.load(img), (100, 100)) for img in image_filenames]
 
-    # 슬롯머신 상태 
     reels_spinning = [False, False, False]
     current_images = [None, None, None]
     spin_sequence = [None, None, None]
     jackpot_triggered = False
-    
-    # 슬롯 머신 릴 이미지 크기 조정 (예: 크기를 100x100으로 조정)
-    image_size = (100, 100)  # 원하는 크기 설정
-    images = [pygame.transform.scale(pygame.image.load(img), image_size) for img in image_filenames]
 
-
-    # 릴 회전 
     def spin_reels():
         nonlocal spin_sequence
         spin_sequence = [random.choice(images) for _ in range(3)]
 
-    # 잭팟 확인 
     def check_jackpot():
         return spin_sequence[0] == spin_sequence[1] == spin_sequence[2]
 
-    # 슬롯머신 화면 그리기 
     def draw_slot_machine():
-        screen.fill(BLACK)
-    
-    # 슬롯머신 화면 그리기 
-    def draw_slot_machine():
-        # 배경 이미지 그리기
         screen.blit(background_image, (0, 0))
 
-        # 제목 및 안내 텍스트 표시
+        # 배팅 금액과 현재 잔액 표시
+        bet_text = font.render(f"배팅 금액: ${bet_amount}", True, WHITE)
+        money_text = font.render(f"현재 잔액: ${money}", True, WHITE)
+        screen.blit(bet_text, (screen_width - 250, 30))
+        screen.blit(money_text, (screen_width - 250, 70))
+
+        # 슬롯머신 제목 및 안내
         title_text = font.render("슬롯머신", True, WHITE)
         instruction_text = font.render("스페이스를 누르세요", True, WHITE)
         screen.blit(title_text, (screen_width // 2 - title_text.get_width() // 2, screen_height // 4))
@@ -257,36 +250,48 @@ def play_slot_machine():
 
         # 잭팟 발생 시 잭팟 이미지 표시
         if jackpot_triggered:
-            screen.blit(jackpot_image, (screen_width // 2 - jackpot_image.get_width() // 2, screen_height // 3 ))
+            jackpot_text = font.render("잭팟!!!", True, RED)
+            screen.blit(jackpot_text, (screen_width // 2 - jackpot_text.get_width() // 2, screen_height // 2))
+            screen.blit(jackpot_image, (screen_width // 2 - jackpot_image.get_width() // 2, screen_height // 3))
 
-    # 슬롯머신 게임 루프 변수 초기화
     running_slots = True
     reel_index_to_stop = 0
 
-    while running_slots:
+    while running_slots and money >= bet_amount:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE: 
+                if event.key == pygame.K_ESCAPE:
                     running_slots = False
 
-                elif event.key == pygame.K_SPACE:  
-                    if not any(reels_spinning):  
+                elif event.key == pygame.K_SPACE:
+                    if not any(reels_spinning):  # 모든 릴이 멈춰있으면 스핀 시작
                         reels_spinning = [True, True, True]
                         spin_reels()
-                        current_images = [random.choice(images) for _ in range(3)]
-                    else:
+
+                        if money >= bet_amount:
+                            money -= bet_amount  # 배팅 금액 차감
+                        else:
+                            message_text = font.render("잔액이 부족합니다!", True, RED)
+                            screen.blit(message_text, (screen_width // 2 - message_text.get_width() // 2, screen_height // 2))
+                            pygame.display.flip()
+                            pygame.time.wait(2000)
+                            running_slots = False
+
+                    else:  # 릴을 하나씩 멈춤
                         if reel_index_to_stop < len(reels_spinning):
                             reels_spinning[reel_index_to_stop] = False
                             current_images[reel_index_to_stop] = spin_sequence[reel_index_to_stop]
                             reel_index_to_stop += 1
 
-                        # 모든 릴 멈춤 -> 잭팟 확인 및 결과 표시
-                        if all(not spinning for spinning in reels_spinning):
+                        if all(not spinning for spinning in reels_spinning):  # 모든 릴이 멈추면 잭팟 확인
                             jackpot_triggered = check_jackpot()
+                            if jackpot_triggered:
+                                money += bet_amount * 10  # 잭팟: 배팅 금액의 10배
+
                             reel_index_to_stop = 0
 
         # 릴이 회전 중일 때 랜덤 이미지 표시
@@ -296,6 +301,15 @@ def play_slot_machine():
 
         draw_slot_machine()
         pygame.display.flip()
+
+    if money < bet_amount:
+        game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
+        screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        sad_ending()
+        return
+
 
 def intro_story():
     intro_background_image = pygame.image.load('intro_background.png')
