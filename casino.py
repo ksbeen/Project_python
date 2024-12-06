@@ -84,6 +84,7 @@ def play_blackjack():
     deck = [f"{value}{suit}" for suit in suits for value in values]
     random.shuffle(deck)
     background_image = pygame.image.load('blackjack_background.png')
+    background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
     
     # 게임 상태 초기화
     player_hand = []
@@ -210,7 +211,7 @@ def play_blackjack():
 
 
 
-    if money < bet_amount: #성빈
+    if money < bet_amount: 
         game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
         screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
         pygame.display.flip()
