@@ -15,6 +15,8 @@ pygame.display.set_caption("게임")
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+GOLD = (255,215,0)
+
 
 # 글꼴 설정
 try:
@@ -27,6 +29,8 @@ CARD_FOLDER = "card"
 
 money= 1000
 
+target = 1100
+
 # 색상 정의
 black = (0, 0, 0)
 
@@ -35,10 +39,10 @@ player_image = pygame.image.load("player1.png")
 # 이미지 크기 조정
 player_image = pygame.transform.scale(player_image, (player_image.get_width() // 10, player_image.get_height() // 10))
 player_rect = player_image.get_rect()
-player_rect.center = (screen_width // 2, screen_height // 2)
+player_rect.center = (825, 1350)
 
 # 플레이어 이동 속도
-player_speed = 5
+player_speed = 1
 
 # NPC 클래스 정의
 class NPC:
@@ -53,8 +57,10 @@ class NPC:
         screen.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
 # NPC 인스턴스 생성
-roulette_npc = NPC("roulette.png", 200, 150)
-blackjack_npc = NPC("blackjack_dealer.png", 700, 300)
+roulette_npc = NPC("slot.png", 1085, 1020)
+roulette_npc1 = NPC("slot.png", 1185, 1020)
+roulette_npc2 = NPC("slot.png", 1135, 1020)
+blackjack_npc = NPC("blackjack_dealer1.png", 825, 1165)
 
 def play_blackjack():
     global money  # 전역 변수로 돈 관리
@@ -77,7 +83,7 @@ def play_blackjack():
     values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
     deck = [f"{value}{suit}" for suit in suits for value in values]
     random.shuffle(deck)
-    background_image = pygame.image.load('inside.png')
+    background_image = pygame.image.load('blackjack_background.png')
     
     # 게임 상태 초기화
     player_hand = []
@@ -167,6 +173,13 @@ def play_blackjack():
 
     running_blackjack = True
     while running_blackjack and money >= bet_amount:
+        if money >= target: 
+            game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
+            screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
+            pygame.display.flip()
+            pygame.time.wait(2000)
+            happy_ending()
+            return
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -195,7 +208,9 @@ def play_blackjack():
         draw_blackjack(message, reveal_dealer=reveal_dealer_cards)
         pygame.display.flip()
 
-    if money < bet_amount:
+
+
+    if money < bet_amount: #성빈
         game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
         screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
         pygame.display.flip()
@@ -209,7 +224,7 @@ def play_slot_machine():
 
     image_filenames = ['lemon.png', 'seven.png', 'apple.png', 'cherry.png']
     jackpot_image = pygame.image.load('jackpot.png')
-    background_image = pygame.image.load('inside.png')
+    background_image = pygame.image.load('slot_background.png')
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 
     reel_positions = [screen_width // 4, screen_width // 2, screen_width // 4 * 3]
@@ -258,6 +273,14 @@ def play_slot_machine():
     reel_index_to_stop = 0
 
     while running_slots and money >= bet_amount:
+        if money >= target:
+            game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
+            screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
+            pygame.display.flip()
+            pygame.time.wait(2000)
+            happy_ending()
+            return
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -290,7 +313,7 @@ def play_slot_machine():
                         if all(not spinning for spinning in reels_spinning):  # 모든 릴이 멈추면 잭팟 확인
                             jackpot_triggered = check_jackpot()
                             if jackpot_triggered:
-                                money += bet_amount * 10  # 잭팟: 배팅 금액의 10배
+                                money += bet_amount * 100  # 잭팟: 배팅 금액의 10배
 
                             reel_index_to_stop = 0
 
@@ -365,7 +388,7 @@ def intro_story():
 
 def main_menu():
     # 메뉴 배경 이미지 로드 및 크기 조정
-    menu_background_image = pygame.image.load('casino_main_background.png')
+    menu_background_image = pygame.image.load('main_background.png')
     menu_background_image = pygame.transform.scale(menu_background_image, (screen_width, screen_height))
     # 메인 메뉴 루프
     running_menu = True
@@ -381,18 +404,15 @@ def main_menu():
                     print("게임에 입장합니다!")
                     running_menu = False
 
-        # 메인 메뉴 화면 그리기
         # 메뉴 배경 이미지 그리기
         screen.blit(menu_background_image, (0, 0))
-        title_text = font.render("카지노", True, BLACK)
-        enter_text = font.render("입장하기", True, RED)
+        # 메인 메뉴 화면 그리기
 
-        # 제목과 버튼을 화면 중앙에 배치
-        screen.blit(title_text, (screen_width // 2 - title_text.get_width() // 2, screen_height // 4))
+        enter_text = font.render("입장하기", True, WHITE)
         
         # "입장하기" 버튼 생성
-        enter_button = pygame.Rect(screen_width // 2 - 75, screen_height // 2 - 25, 150, 50)
-        pygame.draw.rect(screen, BLACK, enter_button)
+        enter_button = pygame.Rect(screen_width // 2 - 75, screen_height // 1.5 - 25, 150, 50)
+        pygame.draw.rect(screen, GOLD, enter_button, border_radius=10)
         screen.blit(enter_text, (enter_button.x + (enter_button.width - enter_text.get_width()) // 2, enter_button.y + (enter_button.height - enter_text.get_height()) // 2))
 
         pygame.display.flip()
@@ -402,8 +422,8 @@ def start_pygame():
     global screen
 
     # 배경 이미지 로드 및 크기 조정
-    background_image = pygame.image.load('casino_up.png')
-    background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
+    background_image = pygame.image.load('main.png')
+    background_image = pygame.transform.scale(background_image, (1700, 1400))
 
     # 카메라 오프셋 초기화
     camera_x, camera_y = 0, 0
@@ -428,6 +448,10 @@ def start_pygame():
                 # 다른 NPC 클릭 시 슬롯머신 실행
                 elif roulette_npc.rect.collidepoint(actual_mouse_pos):
                     play_slot_machine()
+                elif roulette_npc1.rect.collidepoint(actual_mouse_pos):
+                    play_slot_machine()
+                elif roulette_npc2.rect.collidepoint(actual_mouse_pos):
+                    play_slot_machine()    
 
         # 키 입력 처리
         keys = pygame.key.get_pressed()
@@ -444,18 +468,24 @@ def start_pygame():
         if keys[pygame.K_DOWN]:
             player_rect.y += player_speed
 
-        # 카메라 오프셋 업데이트: 플레이어를 중심으로 카메라 위치 조정
-        camera_x = player_rect.x - screen_width // 2 + player_rect.width // 2
-        camera_y = player_rect.y - screen_height // 2 + player_rect.height // 2
+# 플레이어가 배경 밖으로 나가지 않도록 제한
+        player_rect.x = max(0, min(player_rect.x, background_image.get_width() - player_rect.width))
+        player_rect.y = max(0, min(player_rect.y, background_image.get_height() - player_rect.height))
+
+# 카메라 오프셋 업데이트: 플레이어를 중심으로 카메라 위치 조정
+        camera_x = max(0, min(player_rect.x - screen_width // 2 + player_rect.width // 2, background_image.get_width() - screen_width))
+        camera_y = max(0, min(player_rect.y - screen_height // 2 + player_rect.height // 2, background_image.get_height() - screen_height))
 
 
         # 화면 그리기
-        screen.blit(background_image, (0, 0))  # 배경 이미지 그리기
+        screen.blit(background_image, (-camera_x, -camera_y))  # 카메라 오프셋 적용된 배경
         # 플레이어 그리기 (카메라 오프셋 적용)
         screen.blit(player_image, (player_rect.x - camera_x, player_rect.y - camera_y))
         
         # NPC 그리기 (카메라 오프셋 적용)
         roulette_npc.draw(screen, camera_x, camera_y)
+        roulette_npc1.draw(screen, camera_x, camera_y)
+        roulette_npc2.draw(screen, camera_x, camera_y)
         blackjack_npc.draw(screen, camera_x, camera_y)
 
         # 화면 업데이트 
@@ -508,6 +538,52 @@ def sad_ending():
         
         pygame.display.flip()
 
+def happy_ending():
+    happy_background = pygame.image.load('happy_ending_background.png')  # 또는 새로운 엔딩용 배경
+    happy_background = pygame.transform.scale(happy_background, (screen_width, screen_height))
+    
+    ending_texts = [
+        "마침내 돈을 다 모았다...",
+        "이제 가족을 구할 수 있어.",
+        "기다려, 곧 데리러 갈게...",
+        "우리 다시 함께할 수 있어!"
+    ]
+    
+    running_ending = True
+    current_text = ""
+    current_page = 0
+    char_index = 0
+    text_speed = 50
+    last_update_time = pygame.time.get_ticks()
+    
+    while running_ending:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    if current_page < len(ending_texts) - 1:
+                        current_page += 1
+                        current_text = ""
+                        char_index = 0
+                    else:
+                        pygame.quit()
+                        sys.exit()
+        
+        screen.blit(happy_background, (0, 0))
+        
+        now = pygame.time.get_ticks()
+        if now - last_update_time > text_speed and char_index < len(ending_texts[current_page]):
+            current_text += ending_texts[current_page][char_index]
+            char_index += 1
+            last_update_time = now
+            
+        rendered_text = font.render(current_text, True, RED)
+        text_rect = rendered_text.get_rect(center=(screen_width // 2, screen_height // 2))
+        screen.blit(rendered_text, text_rect)
+        
+        pygame.display.flip()
 
 
 intro_story()
