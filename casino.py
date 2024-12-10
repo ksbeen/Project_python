@@ -1,6 +1,7 @@
 import pygame
 import random
 import sys
+import platform
 
 
 # Pygame 초기화
@@ -21,10 +22,12 @@ DARK_BLUE = (0, 0, 139)
 
 
 # 글꼴 설정
-try:
-    font = pygame.font.SysFont("Apple SD Gothic Neo", 36, bold=True) 
-except:
-    font = pygame.font.SysFont(None, 36, bold=True) 
+if platform.system() == "Windows":
+    font_name = "Arial"  # 윈도우 기본 폰트
+else:
+    font_name = "Apple SD Gothic Neo"  # 맥 기본 폰트
+
+font = pygame.font.SysFont(font_name, 36, bold=True)
 
 # 카드 이미지 경로
 CARD_FOLDER = "card"
