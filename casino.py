@@ -74,6 +74,10 @@ arena_npc.image = pygame.transform.scale(
 def play_blackjack():
     global money  # 전역 변수로 돈 관리
     bet_amount = 100  # 기본 배팅 금액
+
+    pygame.mixer.music.load('blackjack_music.mp3')#Music by <a href="https://pixabay.com/ko/users/sunsides-36828350/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=210447">Mykhailo Kyryliuk</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=210447">Pixabay</a>
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
     
     def reset_game():
         nonlocal deck, player_hand, dealer_hand, message, reveal_dealer_cards
@@ -245,6 +249,10 @@ def play_slot_machine():
     current_images = [None, None, None]
     spin_sequence = [None, None, None]
     jackpot_triggered = False
+
+    pygame.mixer.music.load('casino_music.mp3')#Music by <a href="https://pixabay.com/ko/users/mfcc-28627740/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=120443">Mykola Sosin</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=120443">Pixabay</a>
+    pygame.mixer.music.set_volume(1.0)
+    pygame.mixer.music.play(-1)
 
     def spin_reels():
         nonlocal spin_sequence
@@ -475,6 +483,7 @@ def arena_game():
 
     # 색상 정의
     DARK_BLUE = (0, 0, 139)
+    #배경음악
     pygame.mixer.music.load( '221109-piano-gothic-fantasy-mystery-horror-155650.mp3')
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
@@ -775,9 +784,9 @@ def start_pygame():
     # 게임 루프 초기화
     running = True
 
-    pygame.mixer.music.load('casino_music.mp3')#Music by <a href="https://pixabay.com/ko/users/mfcc-28627740/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=120443">Mykola Sosin</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=120443">Pixabay</a>
-    pygame.mixer.music.set_volume(1.0)
-    pygame.mixer.music.play()
+    pygame.mixer.music.load('main_menu_music.mp3')#Music by <a href="https://pixabay.com/ko/users/backgroundmusicforvideos-46459014/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=263181">Maksym Malko</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=263181">Pixabay</a>
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
     
     while running:
         for event in pygame.event.get():
