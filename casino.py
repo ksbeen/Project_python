@@ -16,6 +16,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GOLD = (255,215,0)
+GREEN = (0, 255, 0)
+DARK_BLUE = (0, 0, 139) 
 
 
 # 글꼴 설정
@@ -61,6 +63,13 @@ roulette_npc = NPC("slot.png", 1085, 1020)
 roulette_npc1 = NPC("slot.png", 1185, 1020)
 roulette_npc2 = NPC("slot.png", 1135, 1020)
 blackjack_npc = NPC("blackjack_dealer1.png", 825, 1165)
+dice_npc = NPC("dice_game.png", 1200, 1020) # 이미지는 <a href="https://www.flaticon.com/kr/free-icons/" title="주사위 아이콘">주사위 아이콘 제작자: Hilmy Abiyyu A. - Flaticon에서 가져왔습니다.
+arena_npc = NPC("arena_icon.png", 900, 1020)
+arena_npc.image = pygame.transform.scale(
+    arena_npc.image, 
+    (arena_npc.image.get_width() // 4, arena_npc.image.get_height() // 4)  # 크기 줄임
+)
+
 
 def play_blackjack():
     global money  # 전역 변수로 돈 관리
@@ -333,6 +342,333 @@ def play_slot_machine():
         pygame.time.wait(2000)
         sad_ending()
         return
+    
+def play_odd_even(): 
+    global money
+    bet_amount = 100
+    num_dice = 2  # 사용할 주사위 개수
+    player_choice = None  # 플레이어의 홀/짝 선택
+    final_dice_results = []  # 최종 결과 저장
+
+    background_image = pygame.image.load('dice_inside.png')  # 배경 이미지 로드
+    background_image = pygame.transform.scale(background_image, (screen_width, screen_height))  # 화면 크기에 맞게 조정
+    dice_roll_sound = pygame.mixer.Sound("dice_roll.mp3")  # 주사위 소리 로드
+
+    def draw_dice_face(x, y, number):
+        pygame.draw.rect(screen, WHITE, (x, y, 100, 100), border_radius=10)
+        dot_positions = [
+            [(50, 50)],  # 1
+            [(25, 25), (75, 75)],  # 2
+            [(25, 25), (50, 50), (75, 75)],  # 3
+            [(25, 25), (25, 75), (75, 25), (75, 75)],  # 4
+            [(25, 25), (25, 75), (50, 50), (75, 25), (75, 75)],  # 5
+            [(25, 25), (25, 50), (25, 75), (75, 25), (75, 50), (75, 75)],  # 6
+        ]
+        for dot in dot_positions[number - 1]:
+            pygame.draw.circle(screen, BLACK, (x + dot[0], y + dot[1]), 10)
+
+    def roll_dice_animation(num_dice):
+        dice_results = []
+        for _ in range(num_dice):
+            dice_results.append(random.randint(1, 6))  # 최종 결과
+
+        dice_width = 100
+        total_dice_width = num_dice * dice_width + (num_dice - 1) * 50  # 주사위 간격 50px
+        start_x = (screen_width - total_dice_width) // 2  # 중앙 시작 X 좌표
+        y = (screen_height - dice_width) // 2  # 중앙 Y 좌표
+
+        for _ in range(10):  # 애니메이션 효과
+            # 주사위 굴림 소리 재생
+            dice_roll_sound.play()
+
+
+            for i in range(num_dice):
+                random_face = random.randint(1, 6)  # 임시로 랜덤 눈 표시
+                draw_dice_face(start_x + i * (dice_width + 50), y, random_face)
+            pygame.display.flip()
+            pygame.time.wait(100)  # 짧은 딜레이로 효과 추가
+
+        return dice_results
+
+    def calculate_dice_results(dice_results):
+        total = sum(dice_results)
+        if total % 2 == 0:
+            return "짝수", total
+        else:
+            return "홀수", total
+
+    running_game = True
+    message = "홀짝을 선택하세요: 홀(Odd) / 짝(Even)"
+    result_message = ""
+
+    while running_game and money >= bet_amount:
+        if money >= target: 
+            game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
+            screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
+            pygame.display.flip()
+            pygame.time.wait(2000)
+            happy_ending()
+            return
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    running_game = False
+                elif event.key == pygame.K_o:  # 홀 선택
+                    player_choice = "odd"
+                elif event.key == pygame.K_e:  # 짝 선택
+                    player_choice = "even"
+
+                if player_choice:
+                    # 주사위 굴리기
+                    final_dice_results = roll_dice_animation(num_dice)
+                    result, total = calculate_dice_results(final_dice_results)
+
+                    # 결과 판단
+                    if (result == "홀수" and player_choice == "odd") or (result == "짝수" and player_choice == "even"):
+                        money += bet_amount
+                        result_message = f"주사위 결과: {final_dice_results} (합계: {total}) - {result} 승리! (+${bet_amount}) 남은 금액: ${money}"
+                    else:
+                        money -= bet_amount
+                        result_message = f"주사위 결과: {final_dice_results} (합계: {total}) - {result} 패배! (-${bet_amount}) 남은 금액: ${money}"
+                    player_choice = None
+
+        # 화면 업데이트
+        screen.blit(background_image, (0, 0))  # 배경 그리기
+
+        # 배팅 금액과 현재 잔액
+        bet_text = font.render(f"배팅 금액: ${bet_amount}", True, WHITE)
+        money_text = font.render(f"현재 잔액: ${money}", True, WHITE)
+        message_text = font.render(message, True, WHITE)
+        result_text = font.render(result_message, True, WHITE)
+
+        screen.blit(bet_text, (50, 50))
+        screen.blit(money_text, (50, 100))
+        screen.blit(message_text, (50, 150))
+        screen.blit(result_text, (50, 200))
+
+        # 최종 주사위 결과 그리기
+        dice_width = 100
+        total_dice_width = num_dice * dice_width + (num_dice - 1) * 50
+        start_x = (screen_width - total_dice_width) // 2
+        y = (screen_height - dice_width) // 2
+
+        for i, dice_value in enumerate(final_dice_results):
+            draw_dice_face(start_x + i * (dice_width + 50), y, dice_value)
+
+        pygame.display.flip()
+
+    if money < bet_amount:
+        game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
+        screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        sad_ending()
+        return
+    
+def arena_game():
+    global money
+    bet_amount = 100  # 베팅 금액 고정
+
+    # 색상 정의
+    DARK_BLUE = (0, 0, 139)
+    pygame.mixer.music.load( '221109-piano-gothic-fantasy-mystery-horror-155650.mp3')
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+
+    class Unit:
+        def __init__(self, name, health, attack, defense, speed, image_path, x, y, skill_image=None, darksight_image=None):
+            self.name = name
+            self.health = health
+            self.max_health = health
+            self.attack = attack
+            self.defense = defense
+            self.speed = speed
+            self.image = pygame.image.load(image_path).convert_alpha()
+            self.image = pygame.transform.scale(self.image, (100, 100))
+            self.skill_image = pygame.image.load(skill_image).convert_alpha() if skill_image else None
+            self.darksight_image = pygame.image.load( darksight_image).convert_alpha() if darksight_image else None
+            if self.skill_image:
+                self.skill_image = pygame.transform.scale(self.skill_image, (50, 50))
+            if self.darksight_image:
+                self.darksight_image = pygame.transform.scale(self.darksight_image, (50, 50))
+            self.skill_timer = None
+            self.darksight_timer = None
+            self.x = x
+            self.y = y
+
+        def take_damage(self, damage):
+            if self.name == "시프마스터" and random.random() < 0.2:
+                self.darksight_timer = pygame.time.get_ticks()
+                return
+            actual_damage = max(0, damage - self.defense)
+            self.health -= actual_damage
+
+        def use_savage_blow(self, target):
+            if random.random() < 0.4:
+                self.skill_timer = pygame.time.get_ticks()
+                for _ in range(6):
+                    damage = int(self.attack * 0.6)
+                    target.take_damage(damage)
+
+        def use_holy_shield(self):
+            self.defense = int(self.defense * 1.5)
+            self.skill_timer = pygame.time.get_ticks()
+
+        def is_alive(self):
+            return self.health > 0
+
+        def reset(self):
+            self.health = self.max_health
+
+        def draw(self, screen):
+            screen.blit(self.image, (self.x, self.y))
+            health_bar_width = 100
+            health_ratio = self.health / self.max_health
+            pygame.draw.rect(screen, RED, (self.x, self.y - 20, health_bar_width, 10))
+            pygame.draw.rect(screen, GREEN, (self.x, self.y - 20, health_bar_width * health_ratio, 10))
+            name_text = font.render(self.name, True, WHITE)
+            screen.blit(name_text, (self.x, self.y + 110))
+
+        def draw_skill(self, screen):
+            if self.skill_timer:
+                elapsed_time = pygame.time.get_ticks() - self.skill_timer
+                if elapsed_time < 1000 and self.skill_image:
+                    screen.blit(self.skill_image, (self.x + 50, self.y - 50))
+                else:
+                    self.skill_timer = None
+
+            if self.darksight_timer:
+                elapsed_time = pygame.time.get_ticks() - self.darksight_timer
+                if elapsed_time < 1000 and self.darksight_image:
+                    screen.blit(self.darksight_image, (self.x + 50, self.y - 50))
+                else:
+                    self.darksight_timer = None
+
+    arena_background = pygame.image.load('arena_background.png')
+    arena_background = pygame.transform.scale(arena_background, (screen_width, screen_height))
+
+    paladin = Unit("팔라딘", 120, 15, 10, 5, "paladin.png", 300, 300, skill_image="shield.png")
+    thiefmaster = Unit("시프마스터", 80, 20, 5, 10, "thiefmaster.png", 600, 300, skill_image="blow.png", darksight_image="darksight.png")
+
+    def battle():
+        if paladin.speed > thiefmaster.speed:
+            attacker, defender = paladin, thiefmaster
+        else:
+            attacker, defender = thiefmaster, paladin
+
+        while paladin.is_alive() and thiefmaster.is_alive():
+            if attacker.name == "팔라딘" and random.random() < 0.3:
+                attacker.use_holy_shield()
+            elif attacker.name == "시프마스터" and random.random() < 0.4:
+                attacker.use_savage_blow(defender)
+            else:
+                damage = attacker.attack + random.randint(-5, 5)
+                defender.take_damage(damage)
+
+            yield attacker, defender
+
+            if defender.is_alive():
+                attacker, defender = defender, attacker
+
+        yield None, paladin if paladin.is_alive() else thiefmaster
+
+    running_arena = True
+    winner_message = ""
+    betting_phase = True
+    selected_character = None
+    battle_generator = None
+    battle_message = ""
+    show_winner = False
+
+    while running_arena and money >= bet_amount:
+        if money >= target:
+            pygame.mixer.music.stop()  # 배경 음악 중지 
+            game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
+            screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
+            pygame.display.flip()
+            pygame.time.wait(2000)
+            happy_ending()
+            return
+        
+        screen.blit(arena_background, (0, 0))
+        paladin.draw(screen)
+        thiefmaster.draw(screen)
+        paladin.draw_skill(screen)
+        thiefmaster.draw_skill(screen)
+
+        balance_text = font.render(f"소지금: ${money}", True, WHITE)
+        screen.blit(balance_text, (10, 10))
+
+        if betting_phase:
+            instruction_text = font.render("1번: 팔라딘 | 2번: 시프마스터", True, WHITE)
+            screen.blit(instruction_text, (100, 100))
+        elif show_winner:
+            winner_text = font.render(winner_message, True, DARK_BLUE)
+            screen.blit(winner_text, (screen_width // 2 - winner_text.get_width() // 2, 50))
+            restart_text = font.render("다시 베팅하려면 SPACE를 누르세요", True, WHITE)
+            screen.blit(restart_text, (screen_width // 2 - restart_text.get_width() // 2, 100))
+        
+        else:
+            battle_text = font.render(battle_message, True, WHITE)
+            screen.blit(battle_text, (screen_width // 2 - battle_text.get_width() // 2, 50))
+        
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit() 
+            elif event.type == pygame.KEYDOWN:
+                if betting_phase:
+                    if event.key == pygame.K_1:
+                        selected_character = "팔라딘"
+                        betting_phase = False
+                        battle_generator = battle()
+                    elif event.key == pygame.K_2:
+                        selected_character = "시프마스터"
+                        betting_phase = False
+                        battle_generator = battle()
+                elif event.key == pygame.K_SPACE and show_winner:
+                    paladin.reset()
+                    thiefmaster.reset()
+                    betting_phase = True
+                    show_winner = False
+                    winner_message = ""
+                    battle_message = ""
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.mixer.music.stop()  # 배경 음악 중지
+                    running_arena = False  # 투기장 루프 종료
+                    return  # 함수 종료로 메인 메뉴로 복귀
+
+
+        if not betting_phase and not show_winner and battle_generator:
+            try:
+                attacker, defender = next(battle_generator)
+                if attacker and defender:
+                    battle_message = f"{attacker.name}이 {defender.name}을 공격합니다!"
+            except StopIteration:
+                show_winner = True
+                winner = paladin if paladin.is_alive() else thiefmaster
+                if winner.name == selected_character:
+                    money += bet_amount
+                    winner_message = f"{winner.name} 승리! (+${bet_amount})"
+                else:
+                    money -= bet_amount
+                    winner_message = f"{winner.name} 승리! (-${bet_amount})"
+
+        pygame.display.flip()
+
+    if money < bet_amount:
+        pygame.mixer.music.stop()  # 배경 음악 중지
+        game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
+        screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
+        pygame.display.flip()
+        pygame.time.wait(2000)
+        sad_ending()
+        return
 
 
 def intro_story():
@@ -355,6 +691,12 @@ def intro_story():
 
     running_intro = True
 
+    pygame.mixer.music.load('call.mp3')#https://pgtd.tistory.com/280
+    pygame.mixer.music.set_volume(1.0)
+    pygame.mixer.music.play()
+
+    
+
     while running_intro:
         for event in pygame.event.get(): 
             if event.type == pygame.QUIT:
@@ -372,6 +714,7 @@ def intro_story():
 
         # 배경 이미지
         screen.blit(intro_background_image, (0, 0))
+
 
         # 텍스트 애니메이션 
         now = pygame.time.get_ticks()
@@ -431,6 +774,10 @@ def start_pygame():
 
     # 게임 루프 초기화
     running = True
+
+    pygame.mixer.music.load('casino_music.mp3')#Music by <a href="https://pixabay.com/ko/users/mfcc-28627740/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=120443">Mykola Sosin</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=120443">Pixabay</a>
+    pygame.mixer.music.set_volume(1.0)
+    pygame.mixer.music.play()
     
     while running:
         for event in pygame.event.get():
@@ -452,7 +799,11 @@ def start_pygame():
                 elif roulette_npc1.rect.collidepoint(actual_mouse_pos):
                     play_slot_machine()
                 elif roulette_npc2.rect.collidepoint(actual_mouse_pos):
-                    play_slot_machine()    
+                    play_slot_machine()
+                elif dice_npc.rect.collidepoint(actual_mouse_pos):  # 홀짝 다이스 게임 실행
+                    play_odd_even()
+                elif arena_npc.rect.collidepoint(actual_mouse_pos):
+                    arena_game()       
 
         # 키 입력 처리
         keys = pygame.key.get_pressed()
@@ -488,6 +839,8 @@ def start_pygame():
         roulette_npc1.draw(screen, camera_x, camera_y)
         roulette_npc2.draw(screen, camera_x, camera_y)
         blackjack_npc.draw(screen, camera_x, camera_y)
+        dice_npc.draw(screen, camera_x, camera_y)
+        arena_npc.draw(screen, camera_x, camera_y)
 
         # 화면 업데이트 
         pygame.display.flip()
