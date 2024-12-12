@@ -358,11 +358,11 @@ def play_slot_machine():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    running_slots = False
                     if not running_slots:
                         pygame.mixer.music.stop()
                         pygame.mixer.music.load('main_menu_music.mp3')
                         pygame.mixer.music.play(-1)
-                    running_slots = False
                     
 
                 elif event.key == pygame.K_SPACE:
@@ -424,9 +424,6 @@ def play_odd_even():
     pygame.mixer.music.load('background_music.mp3')
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
-    # 배경음악 재생
-    pygame.mixer.music.set_volume(0.5)  # 배경음악 볼륨 (0.0 ~ 1.0)
-    pygame.mixer.music.play(-1)  # 무한 반복 재생
 
     def draw_dice_face(x, y, number):
         pygame.draw.rect(screen, WHITE, (x, y, 100, 100), border_radius=10)
@@ -490,11 +487,11 @@ def play_odd_even():
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    if not play_odd_even:
+                    running_game = False
+                    if not running_game:
                         pygame.mixer.music.stop()
                         pygame.mixer.music.load('main_menu_music.mp3')
                         pygame.mixer.music.play(-1)
-                    running_game = False
                     
                 elif event.key == pygame.K_o:  # 홀 선택
                     player_choice = "odd"
@@ -561,7 +558,6 @@ def arena_game():
     pygame.mixer.music.play(-1)
 
     scratch_sound = pygame.mixer.Sound("scratch.mp3")#출처 pixabay
-    darksight_sound = pygame.mixer.Sound("darksight.mp3")#출처 pixabay
     holyshield_sound = pygame.mixer.Sound("holyshield.mp3")#출처 pixabay
 
     class Unit:
@@ -781,11 +777,11 @@ def arena_game():
                     winner_message = ""
                     battle_message = ""
                 elif event.key == pygame.K_ESCAPE:
-                    if not arena_game:
+                    running_arena = False  # 투기장 루프 종료
+                    if not running_arena:
                         pygame.mixer.music.stop()
                         pygame.mixer.music.load('main_menu_music.mp3')
                         pygame.mixer.music.play(-1)
-                    running_arena = False  # 투기장 루프 종료
                     return  # 함수 종료로 메인 메뉴로 복귀
 
 
