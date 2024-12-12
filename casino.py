@@ -35,7 +35,7 @@ CARD_FOLDER = "card"
 
 money= 1000
 
-target = 1100
+target = 1200
 
 # 색상 정의
 black = (0, 0, 0)
@@ -120,10 +120,9 @@ arena_npc.image = pygame.transform.scale(
 def play_blackjack():
     global money  # 전역 변수로 돈 관리
     bet_amount = 100  # 기본 배팅 금액
-#Music by <a href="https://pixabay.com/ko/users/sunsides-36828350/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=210447">Mykhailo Kyryliuk</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=210447">Pixabay</a>
     # 게임 시작 시 기존 음악 중지 후 블랙잭 음악 재생
     pygame.mixer.music.stop()
-    pygame.mixer.music.load('blackjack_music.mp3')
+    pygame.mixer.music.load('blackjack_music.mp3')#Music by <a href="https://pixabay.com/ko/users/sunsides-36828350/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=210447">Mykhailo Kyryliuk</a> from <a href="https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=210447">Pixabay</a>
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
     
@@ -205,8 +204,8 @@ def play_blackjack():
         # 배팅 금액과 현재 잔액 표시
         bet_text = font.render(f"배팅 금액: ${bet_amount}", True, WHITE)
         money_text = font.render(f"현재 잔액: ${money}", True, WHITE)
-        screen.blit(bet_text, (screen_width - 250, 30))
-        screen.blit(money_text, (screen_width - 250, 70))
+        screen.blit(bet_text, (screen_width - 250, 650))
+        screen.blit(money_text, (screen_width - 320, 10))
 
         player_text = font.render("플레이어의 손패:", True, WHITE)
         dealer_text = font.render("딜러의 손패:", True, WHITE)
@@ -643,12 +642,12 @@ def arena_game():
         while abs(attacker.x - defender.x) > attack_range:
             attacker.x += attack_step if attacker.x < defender.x else -attack_step
             redraw_screen(attacker, defender)
-            pygame.time.delay(30)
+            pygame.time.delay(10)
 
         while abs(attacker.x - original_x) > 0:
             attacker.x -= attack_step if attacker.x > original_x else -attack_step
             redraw_screen(attacker, defender)
-            pygame.time.delay(30)
+            pygame.time.delay(10)
 
         attacker.x = original_x
 
@@ -663,13 +662,13 @@ def arena_game():
             for _ in range(5):
                 screen.blit(scratch_image, (defender.x + 20, defender.y - 30))
                 pygame.display.flip()
-                pygame.time.delay(50)
+                pygame.time.delay(10)
                 defender.x += hit_offset
                 redraw_screen(None, defender)
-                pygame.time.delay(50)
+                pygame.time.delay(10)
                 defender.x -= hit_offset
                 redraw_screen(None, defender)
-                pygame.time.delay(50)
+                pygame.time.delay(10)
         defender.x = original_x
 
     def redraw_screen(attacker, defender):
@@ -701,11 +700,11 @@ def arena_game():
                 attacker.use_holy_shield()
                 holyshield_sound.play()
                 redraw_screen(attacker, defender)
-                pygame.time.delay(500)
+                pygame.time.delay(100)
             elif attacker.name == "시프마스터" and random.random() < 0.4:
                 attacker.use_savage_blow(defender)
                 redraw_screen(attacker, defender)
-                pygame.time.delay(500)
+                pygame.time.delay(100)
             else:
                 animate_attack(attacker, defender)
                 damage = attacker.attack + random.randint(-5, 5)
@@ -747,12 +746,12 @@ def arena_game():
         screen.blit(balance_text, (10, 10))
 
         if betting_phase:
-            instruction_text = font.render("1번: 팔라딘 | 2번: 시프마스터", True, BLACK)
+            instruction_text = font.render("1번: 팔라딘 | 2번: 시프마스터", True, GREEN)
             screen.blit(instruction_text, (100, 100))
         elif show_winner:
             winner_text = font.render(winner_message, True, DARK_BLUE)
             screen.blit(winner_text, (screen_width // 2 - winner_text.get_width() // 2, 50))
-            restart_text = font.render("다시 베팅하려면 SPACE를 누르세요", True, WHITE)
+            restart_text = font.render("다시 베팅하려면 SPACE를 누르세요", True,GOLD)
             screen.blit(restart_text, (screen_width // 2 - restart_text.get_width() // 2, 100))
         
         else:
@@ -823,10 +822,11 @@ def intro_story():
 
     story_pages = [
         "어느 날, 평범했던 일상이 한 통의 전화로 뒤바뀌었다.",
-        '"당신의 가족이 우리 손에 있다. 몸값으로 1억원을 준비해라."',
+        '"당신의 가족이 우리 손에 있다. 몸값으로 10만달러를 준비해라."',
         "믿기 힘든 내용이 전화기 너머로 들려왔다.",
         "나는 가족을 구하기 위해 무엇이든 해야 했다.",
-        "선택의 여지가 없었다. 돈을 마련할 수 있는 유일한 방법은 카지노였다."
+        "선택의 여지가 없었다.",
+        "돈을 마련할 수 있는 유일한 방법은 카지노였다."
     ]
 
     current_page = 0
