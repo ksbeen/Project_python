@@ -235,6 +235,7 @@ def play_blackjack():
     running_blackjack = True
     while running_blackjack and money >= bet_amount:
         if money >= target: 
+            pygame.mixer.music.stop()
             game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
             screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
             pygame.display.flip()
@@ -275,7 +276,8 @@ def play_blackjack():
 
 
 
-    if money < bet_amount: 
+    if money < bet_amount:
+        pygame.mixer.music.stop() 
         game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
         screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
         pygame.display.flip()
@@ -344,6 +346,7 @@ def play_slot_machine():
 
     while running_slots and money >= bet_amount:
         if money >= target:
+            pygame.mixer.music.stop()
             game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
             screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
             pygame.display.flip()
@@ -401,6 +404,7 @@ def play_slot_machine():
         pygame.display.flip()
 
     if money < bet_amount:
+        pygame.mixer.music.stop()
         game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
         screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
         pygame.display.flip()
@@ -473,7 +477,8 @@ def play_odd_even():
     result_message = ""
 
     while running_game and money >= bet_amount:
-        if money >= target: 
+        if money >= target:
+            pygame.mixer.music.stop() 
             game_ending_text = font.render("돈을 다 모았습니다!!!", True, WHITE)
             screen.blit(game_ending_text, (screen_width // 2 - game_ending_text.get_width() // 2, screen_height // 2))
             pygame.display.flip()
@@ -538,6 +543,7 @@ def play_odd_even():
         pygame.display.flip()
 
     if money < bet_amount:
+        pygame.mixer.music.stop()
         game_over_text = font.render("게임 오버! 잔액이 부족합니다.", True, WHITE)
         screen.blit(game_over_text, (screen_width // 2 - game_over_text.get_width() // 2, screen_height // 2))
         pygame.display.flip()
@@ -830,6 +836,7 @@ def intro_story():
     char_index = 0
     text_speed = 50 
     last_update_time = pygame.time.get_ticks()
+
 
     running_intro = True
 
